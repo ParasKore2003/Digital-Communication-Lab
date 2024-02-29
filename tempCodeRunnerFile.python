@@ -1,0 +1,53 @@
+import numpy as np
+import matplotlib.pyplot as plt
+
+# Parameters
+sampling_rate = 10000  # Hz
+frequency = 5  # Hz
+duration = 1  # seconds
+amplitude = 1
+quantization_levels = 16  # Number of quantization levels
+threshold = amplitude / quantization_levels  # Threshold for delta modulation
+
+# Generate analog signal (sine wave)
+t = np.linspace(0, duration, int(sampling_rate * duration), endpoint=False)
+analog_signal = amplitude * np.sin(2 * np.pi * frequency * t)
+
+# Delta modulation simulation
+delta_modulated_signal = np.zeros_like(analog_signal)
+previous_level = 0
+
+for i, sample in enumerate(analog_signal):
+    delta = sample - previous_level
+    if delta >= threshold:
+        delta_modulated_signal[i] = 1
+        previous_level += threshold
+    elif delta <= -threshold:
+        delta_modulated_signal[i] = 0
+        previous_level -= threshold
+    else:
+        delta_modulated_signal[i] = delta_modulated_signal[i-1]  # Maintain the previous level
+
+print(previous_level)
+# Plotting
+plt.figure(figsize=(10, 6))
+
+plt.subplot(2, 1, 1)
+plt.plot(t, analog_signal, label='Analog Signal')
+plt.title('Analog Signal (Sine Wave)')
+plt.xlabel('Time (s)')
+plt.ylabel('Amplitude')
+plt.grid(True)
+plt.legend()
+
+plt.subplot(2, 1, 2)
+plt.step(t, delta_modulated_signal, where='post', label='Delta Modulated Signal')
+plt.title('Delta Modulated Signal')
+plt.xlabel('Time (s)')
+plt.ylabel('Digital Output')
+plt.ylim(-0.1, 1.1)
+plt.grid(True)
+plt.legend()
+
+plt.tight_layout()
+plt.show()
